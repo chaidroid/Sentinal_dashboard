@@ -1,52 +1,89 @@
-import { NextResponse } from "next/server"
+import { NextResponse } from "next/server";
+import fs from "fs";
+import path from "path";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Mock data for a single alert
-const alertData = {
-  id: "1234567890",
-  threatInfo: {
-    threatName: "Suspicious PowerShell Command",
-    threatId: "1234567890",
-    filePath: "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
-    fileVerificationType: "Signed",
-    originatorProcess: "explorer.exe",
-    confidenceLevel: "HIGH",
-    processUser: "SYSTEM",
-  },
-  agentDetectionInfo: {
-    agentComputerName: "DESKTOP-ABC123",
-    agentLastLoggedInUserName: "admin",
-  },
-  createdAt: "2023-05-01T12:34:56Z",
-}
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
-// Mock data for analysis
-const analysisData = {
-  Agent_Verdict: "True Positive",
-  Report:
-    "This alert indicates a suspicious PowerShell command execution. The command was executed with SYSTEM privileges, which is unusual for normal operations. The originating process was explorer.exe, suggesting user interaction, but the command itself contains obfuscated code patterns commonly used in malicious scripts. Based on these factors, this is likely a true positive that requires immediate attention.",
-}
+export async function GET(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
+  const { id } = params;
+  const alertsDir = path.join(process.cwd(), "../generated_alerts");
 
-// Mock data for update status
-const updateData = {
-  success: true,
-  timestamp: "2023-05-01T12:45:23Z",
-  verdict_result: { success: true },
-  status_result: { success: true },
-  notes_result: { success: true },
-}
+  try {
+    const fileNames = fs.readdirSync(alertsDir);
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
-  const id = params.id
+    for (const file of fileNames) {
+      const filePath = path.join(alertsDir, file);
+      const fileContent = fs.readFileSync(filePath, "utf-8");
+      const jsonData = JSON.parse(fileContent);
 
-  // In a real app, we would fetch the alert data from a database
-  // For now, we'll just return the mock data if the ID matches
-  if (id === "1234567890") {
-    return NextResponse.json({
-      alert: alertData,
-      analysis: analysisData,
-      update: updateData,
-    })
+      if (jsonData.id === id) {
+        const alertData = {
+          id: jsonData.id,
+          threatInfo: {
+            threatName: jsonData.threatInfo?.threatName ?? "",
+            threatId: jsonData.threatInfo?.threatId ?? "",
+            filePath: jsonData.threatInfo?.filePath ?? "",
+            fileVerificationType:
+              jsonData.threatInfo?.fileVerificationType ?? "",
+            originatorProcess: jsonData.threatInfo?.originatorProcess ?? "",
+            confidenceLevel: jsonData.threatInfo?.confidenceLevel ?? "",
+            processUser: jsonData.threatInfo?.processUser ?? "",
+          },
+          agentDetectionInfo: {
+            agentComputerName:
+              jsonData.agentRealtimeInfo?.agentComputerName ?? "",
+            agentLastLoggedInUserName:
+              jsonData.agentDetectionInfo?.agentLastLoggedInUserName ?? "",
+          },
+          createdAt: jsonData.createdAt ?? "",
+        };
+
+        // 🔍 Generate analysis using Gemini
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+        const prompt = `
+          Analyze the following alert:
+          - Threat Name: ${alertData.threatInfo.threatName}
+          - File Path: ${alertData.threatInfo.filePath}
+          - Verification: ${alertData.threatInfo.fileVerificationType}
+          - Originator: ${alertData.threatInfo.originatorProcess}
+          - Confidence: ${alertData.threatInfo.confidenceLevel}
+          - User: ${alertData.threatInfo.processUser}
+          - Agent: ${alertData.agentDetectionInfo.agentComputerName}
+          - Logged in User: ${alertData.agentDetectionInfo.agentLastLoggedInUserName}
+          
+          Give a security analyst-style report in 100 words and verdict (True Positive / False Positive)(Dont include heading only give paragragh answer last 2 words after full stop are "true positive or false positive").
+        `;
+
+        const result = await model.generateContent(prompt);
+        const text = result.response.text();
+
+        const analysisData = {
+          Agent_Verdict: text.includes("False Positive")
+            ? "False Positive"
+            : "True Positive",
+          Report: text.slice(0, [...text.matchAll(/\./g)].slice(-2)[0]?.index! + 1),
+        };
+
+        const updateData = {
+          success: true,
+          timestamp: jsonData.threatInfo?.createdAt,
+          verdict_result: { success: true },
+          status_result: { success: true },
+          notes_result: { success: true },
+        };
+
+        return NextResponse.json({ alertData, analysisData, updateData });
+      }
+    }
+
+    return NextResponse.json({ error: "Alert not found" }, { status: 404 });
+  } catch (err) {
+    console.error("Error reading alert files:", err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
-
-  return NextResponse.json({ error: "Alert not found" }, { status: 404 })
 }

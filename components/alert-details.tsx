@@ -1,13 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { AlertCircle, CheckCircle, Shield, ChevronLeft } from "lucide-react"
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Router } from "next/router"
 
 // Mock data for a single alert
 const alertData = {
@@ -44,12 +46,85 @@ const updateData = {
   notes_result: { success: true },
 }
 
+interface AlertData {
+  id: string;
+  threatInfo: {
+    threatName: string;
+    threatId: string;
+    filePath: string;
+    fileVerificationType: string;
+    originatorProcess: string;
+    confidenceLevel: string;
+    processUser: string;
+  };
+  agentDetectionInfo: {
+    agentComputerName: string;
+    agentLastLoggedInUserName: string;
+  };
+  createdAt: string;
+}
+
+interface AnalysisData {
+  Agent_Verdict: string;
+  Report: string;
+}
+
+interface UpdateData {
+  success: boolean;
+  timestamp: string;
+  verdict_result: { success: boolean };
+  status_result: { success: boolean };
+  notes_result: { success: boolean };
+}
+
+interface AlertResponse {
+  alertData: AlertData;
+  analysisData: AnalysisData;
+  updateData: UpdateData;
+}
+
+
 interface AlertDetailsProps {
   id: string
 }
 
 export function AlertDetails({ id }: AlertDetailsProps) {
   const [activeTab, setActiveTab] = useState("overview")
+  const [data, setData] = useState<AlertResponse|null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    fetch(`/api/alerts/${id}`) // Adjust the path to your API route
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch");
+        console.log('aaaa',res);
+        return res.json();
+      })
+      .then((data) => {
+        console.log('bbb',data);
+        setData(data)
+        
+      })
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [id]);
+   
+
+  if (loading) return <div>Loading...</div>;
+if (error || !data) return <div>Error: {error}</div>;
+
+const { alertData, analysisData, updateData } = data;
+
+  
+  // Get the navigate function
+
+  const handleClick = () => {
+    router.push("/"); // Navigate to the home page
+  };
+  
+   
 
   return (
     <div className="space-y-6">
@@ -84,7 +159,7 @@ export function AlertDetails({ id }: AlertDetailsProps) {
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                       <span className="font-medium">File Path:</span>
-                      <span className="col-span-2">{alertData.threatInfo.filePath}</span>
+                      <span className="col-span-2 break-words">{alertData.threatInfo.filePath}</span>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                       <span className="font-medium">Verification:</span>
@@ -219,7 +294,7 @@ export function AlertDetails({ id }: AlertDetailsProps) {
           </Tabs>
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleClick}>
             <ChevronLeft className="mr-2 h-4 w-4" />
             Back to Alerts
           </Button>

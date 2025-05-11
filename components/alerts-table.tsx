@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { AlertCircle, CheckCircle, ChevronDown, Clock, Search, Shield } from "lucide-react"
 
@@ -69,10 +69,47 @@ const alerts = [
     verdict: null,
   },
 ]
+interface Alert {
+  id: string;
+  threatName: string;
+  confidence: string;
+  status: string;
+  agentName: string;
+  filePath: string;
+  timestamp: string;
+  verdict: string | null;
+}
 
 export function AlertsTable() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string[]>([])
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState<string | null>(null);
+
+useEffect(() => {
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/alerts");
+      if (!res.ok) throw new Error("Failed to fetch alerts");
+
+      const json = await res.json();
+      setAlerts(json);
+    } catch (err: any) {
+      setError(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+}, []);
+if (loading) return <div>Loading...</div>;
+if (error) return <div>Error: {error}</div>;
+if (!alerts) return <div>No alerts found.</div>;
 
   const filteredAlerts = alerts.filter((alert) => {
     // Apply search filter
