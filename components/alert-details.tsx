@@ -1,50 +1,26 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { AlertCircle, CheckCircle, Shield, ChevronLeft } from "lucide-react"
+import { useEffect, useState } from "react";
+import { AlertCircle, CheckCircle, Shield, ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Router } from "next/router"
-
-// Mock data for a single alert
-const alertData = {
-  id: "1234567890",
-  threatInfo: {
-    threatName: "Suspicious PowerShell Command",
-    threatId: "1234567890",
-    filePath: "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
-    fileVerificationType: "Signed",
-    originatorProcess: "explorer.exe",
-    confidenceLevel: "HIGH",
-    processUser: "SYSTEM",
-  },
-  agentDetectionInfo: {
-    agentComputerName: "DESKTOP-ABC123",
-    agentLastLoggedInUserName: "admin",
-  },
-  createdAt: "2023-05-01T12:34:56Z",
-}
-
-// Mock data for analysis
-const analysisData = {
-  Agent_Verdict: "True Positive",
-  Report:
-    "This alert indicates a suspicious PowerShell command execution. The command was executed with SYSTEM privileges, which is unusual for normal operations. The originating process was explorer.exe, suggesting user interaction, but the command itself contains obfuscated code patterns commonly used in malicious scripts. Based on these factors, this is likely a true positive that requires immediate attention.",
-}
-
-// Mock data for update status
-const updateData = {
-  success: true,
-  timestamp: "2023-05-01T12:45:23Z",
-  verdict_result: { success: true },
-  status_result: { success: true },
-  notes_result: { success: true },
-}
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface AlertData {
   id: string;
@@ -83,48 +59,40 @@ interface AlertResponse {
   updateData: UpdateData;
 }
 
-
 interface AlertDetailsProps {
-  id: string
+  id: string;
 }
 
 export function AlertDetails({ id }: AlertDetailsProps) {
-  const [activeTab, setActiveTab] = useState("overview")
-  const [data, setData] = useState<AlertResponse|null>(null);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [data, setData] = useState<AlertResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
-    fetch(`/api/alerts/${id}`) // Adjust the path to your API route
+    fetch(`/api/alerts/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch");
-        console.log('aaaa',res);
+        console.log("aaaa", res);
         return res.json();
       })
       .then((data) => {
-        console.log('bbb',data);
-        setData(data)
-        
+        console.log("bbb", data);
+        setData(data);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [id]);
-   
 
   if (loading) return <div>Loading...</div>;
-if (error || !data) return <div>Error: {error}</div>;
+  if (error || !data) return <div>Error: {error}</div>;
 
-const { alertData, analysisData, updateData } = data;
-
-  
-  // Get the navigate function
+  const { alertData, analysisData, updateData } = data;
 
   const handleClick = () => {
-    router.push("/"); // Navigate to the home page
+    router.push("/");
   };
-  
-   
 
   return (
     <div className="space-y-6">
@@ -135,7 +103,10 @@ const { alertData, analysisData, updateData } = data;
               <CardTitle>{alertData.threatInfo.threatName}</CardTitle>
               <CardDescription>Alert ID: {id}</CardDescription>
             </div>
-            <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+            <Badge
+              variant="outline"
+              className="bg-red-50 text-red-700 border-red-200"
+            >
               <AlertCircle className="mr-1 h-3 w-3" />
               True Positive
             </Badge>
@@ -151,48 +122,70 @@ const { alertData, analysisData, updateData } = data;
             <TabsContent value="overview" className="space-y-4 mt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <h3 className="text-sm font-medium mb-2">Threat Information</h3>
+                  <h3 className="text-sm font-medium mb-2">
+                    Threat Information
+                  </h3>
                   <div className="space-y-2 text-sm">
                     <div className="grid grid-cols-3 gap-2">
                       <span className="font-medium">Threat Name:</span>
-                      <span className="col-span-2">{alertData.threatInfo.threatName}</span>
+                      <span className="col-span-2">
+                        {alertData.threatInfo.threatName}
+                      </span>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                       <span className="font-medium">File Path:</span>
-                      <span className="col-span-2 break-words">{alertData.threatInfo.filePath}</span>
+                      <span className="col-span-2 break-words">
+                        {alertData.threatInfo.filePath}
+                      </span>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                       <span className="font-medium">Verification:</span>
-                      <span className="col-span-2">{alertData.threatInfo.fileVerificationType}</span>
+                      <span className="col-span-2">
+                        {alertData.threatInfo.fileVerificationType}
+                      </span>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                       <span className="font-medium">Originator:</span>
-                      <span className="col-span-2">{alertData.threatInfo.originatorProcess}</span>
+                      <span className="col-span-2">
+                        {alertData.threatInfo.originatorProcess}
+                      </span>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                       <span className="font-medium">Confidence:</span>
-                      <span className="col-span-2">{alertData.threatInfo.confidenceLevel}</span>
+                      <span className="col-span-2">
+                        {alertData.threatInfo.confidenceLevel}
+                      </span>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                       <span className="font-medium">Process User:</span>
-                      <span className="col-span-2">{alertData.threatInfo.processUser}</span>
+                      <span className="col-span-2">
+                        {alertData.threatInfo.processUser}
+                      </span>
                     </div>
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium mb-2">Agent Information</h3>
+                  <h3 className="text-sm font-medium mb-2">
+                    Agent Information
+                  </h3>
                   <div className="space-y-2 text-sm">
                     <div className="grid grid-cols-3 gap-2">
                       <span className="font-medium">Computer:</span>
-                      <span className="col-span-2">{alertData.agentDetectionInfo.agentComputerName}</span>
+                      <span className="col-span-2">
+                        {alertData.agentDetectionInfo.agentComputerName}
+                      </span>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                       <span className="font-medium">User:</span>
-                      <span className="col-span-2">{alertData.agentDetectionInfo.agentLastLoggedInUserName}</span>
+                      <span className="col-span-2">
+                        {alertData.agentDetectionInfo.agentLastLoggedInUserName}
+                      </span>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                       <span className="font-medium">Created At:</span>
-                      <span className="col-span-2">{new Date(alertData.createdAt).toLocaleString()}</span>
+                      <span className="col-span-2">
+                        {new Date(alertData.createdAt).toLocaleString()}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -201,17 +194,24 @@ const { alertData, analysisData, updateData } = data;
             <TabsContent value="analysis" className="space-y-4 mt-4">
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-medium mb-2">LLM Analysis Result</h3>
+                  <h3 className="text-sm font-medium mb-2">
+                    LLM Analysis Result
+                  </h3>
                   <div className="p-4 rounded-md bg-muted">
                     <div className="flex items-center mb-2">
                       <span className="font-medium mr-2">Verdict:</span>
-                      <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                      <Badge
+                        variant="outline"
+                        className="bg-red-50 text-red-700 border-red-200"
+                      >
                         {analysisData.Agent_Verdict}
                       </Badge>
                     </div>
                     <div>
                       <span className="font-medium">Analysis Report:</span>
-                      <p className="mt-2 text-sm whitespace-pre-wrap">{analysisData.Report}</p>
+                      <p className="mt-2 text-sm whitespace-pre-wrap">
+                        {analysisData.Report}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -220,18 +220,26 @@ const { alertData, analysisData, updateData } = data;
             <TabsContent value="updates" className="space-y-4 mt-4">
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-medium mb-2">SentinelOne Update Status</h3>
+                  <h3 className="text-sm font-medium mb-2">
+                    SentinelOne Update Status
+                  </h3>
                   <div className="p-4 rounded-md bg-muted">
                     <div className="space-y-2">
                       <div className="flex items-center">
                         <span className="font-medium mr-2">Status:</span>
                         {updateData.success ? (
-                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                          <Badge
+                            variant="outline"
+                            className="bg-green-50 text-green-700 border-green-200"
+                          >
                             <CheckCircle className="mr-1 h-3 w-3" />
                             Success
                           </Badge>
                         ) : (
-                          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                          <Badge
+                            variant="outline"
+                            className="bg-red-50 text-red-700 border-red-200"
+                          >
                             <AlertCircle className="mr-1 h-3 w-3" />
                             Failed
                           </Badge>
@@ -239,7 +247,9 @@ const { alertData, analysisData, updateData } = data;
                       </div>
                       <div className="grid grid-cols-3 gap-2 text-sm">
                         <span className="font-medium">Updated At:</span>
-                        <span className="col-span-2">{new Date(updateData.timestamp).toLocaleString()}</span>
+                        <span className="col-span-2">
+                          {new Date(updateData.timestamp).toLocaleString()}
+                        </span>
                       </div>
                       <Accordion type="single" collapsible className="w-full">
                         <AccordionItem value="update-details">
@@ -247,37 +257,61 @@ const { alertData, analysisData, updateData } = data;
                           <AccordionContent>
                             <div className="space-y-2 text-sm">
                               <div className="flex items-center">
-                                <span className="font-medium mr-2">Verdict Update:</span>
+                                <span className="font-medium mr-2">
+                                  Verdict Update:
+                                </span>
                                 {updateData.verdict_result.success ? (
-                                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-green-50 text-green-700 border-green-200"
+                                  >
                                     Success
                                   </Badge>
                                 ) : (
-                                  <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-red-50 text-red-700 border-red-200"
+                                  >
                                     Failed
                                   </Badge>
                                 )}
                               </div>
                               <div className="flex items-center">
-                                <span className="font-medium mr-2">Status Update:</span>
+                                <span className="font-medium mr-2">
+                                  Status Update:
+                                </span>
                                 {updateData.status_result.success ? (
-                                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-green-50 text-green-700 border-green-200"
+                                  >
                                     Success
                                   </Badge>
                                 ) : (
-                                  <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-red-50 text-red-700 border-red-200"
+                                  >
                                     Failed
                                   </Badge>
                                 )}
                               </div>
                               <div className="flex items-center">
-                                <span className="font-medium mr-2">Notes Update:</span>
+                                <span className="font-medium mr-2">
+                                  Notes Update:
+                                </span>
                                 {updateData.notes_result.success ? (
-                                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-green-50 text-green-700 border-green-200"
+                                  >
                                     Success
                                   </Badge>
                                 ) : (
-                                  <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-red-50 text-red-700 border-red-200"
+                                  >
                                     Failed
                                   </Badge>
                                 )}
@@ -305,5 +339,5 @@ const { alertData, analysisData, updateData } = data;
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }

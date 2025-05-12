@@ -42,7 +42,6 @@ export async function GET(
           createdAt: jsonData.createdAt ?? "",
         };
 
-        // 🔍 Generate analysis using Gemini
         const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
         const prompt = `
@@ -66,7 +65,10 @@ export async function GET(
           Agent_Verdict: text.includes("False Positive")
             ? "False Positive"
             : "True Positive",
-          Report: text.slice(0, [...text.matchAll(/\./g)].slice(-2)[0]?.index! + 1),
+          Report: text.slice(
+            0,
+            [...text.matchAll(/\./g)].slice(-2)[0]?.index! + 1
+          ),
         };
 
         const updateData = {

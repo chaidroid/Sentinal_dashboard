@@ -1,74 +1,41 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import Link from "next/link"
-import { AlertCircle, CheckCircle, ChevronDown, Clock, Search, Shield } from "lucide-react"
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import {
+  AlertCircle,
+  CheckCircle,
+  ChevronDown,
+  Clock,
+  Search,
+  Shield,
+} from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Badge } from "@/components/ui/badge"
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 
-// Mock data for alerts
-const alerts = [
-  {
-    id: "1234567890",
-    threatName: "Suspicious PowerShell Command",
-    confidence: "high",
-    status: "processed",
-    agentName: "DESKTOP-ABC123",
-    filePath: "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
-    timestamp: "2023-05-01T12:34:56Z",
-    verdict: "true_positive",
-  },
-  {
-    id: "2345678901",
-    threatName: "Potential Malware Download",
-    confidence: "medium",
-    status: "processed",
-    agentName: "LAPTOP-XYZ456",
-    filePath: "C:\\Users\\user\\Downloads\\setup.exe",
-    timestamp: "2023-05-02T10:11:12Z",
-    verdict: "false_positive",
-  },
-  {
-    id: "3456789012",
-    threatName: "Suspicious Registry Modification",
-    confidence: "high",
-    status: "new",
-    agentName: "SERVER-789",
-    filePath: "C:\\Windows\\System32\\reg.exe",
-    timestamp: "2023-05-03T09:08:07Z",
-    verdict: null,
-  },
-  {
-    id: "4567890123",
-    threatName: "Potential Data Exfiltration",
-    confidence: "high",
-    status: "processed",
-    agentName: "DESKTOP-DEF456",
-    filePath: "C:\\Program Files\\FileZilla FTP Client\\filezilla.exe",
-    timestamp: "2023-05-04T15:16:17Z",
-    verdict: "true_positive",
-  },
-  {
-    id: "5678901234",
-    threatName: "Suspicious Script Execution",
-    confidence: "medium",
-    status: "new",
-    agentName: "LAPTOP-GHI789",
-    filePath: "C:\\Users\\admin\\Documents\\script.vbs",
-    timestamp: "2023-05-05T14:13:12Z",
-    verdict: null,
-  },
-]
 interface Alert {
   id: string;
   threatName: string;
@@ -81,54 +48,56 @@ interface Alert {
 }
 
 export function AlertsTable() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState<string[]>([])
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
-const [loading, setLoading] = useState(true);
-const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-useEffect(() => {
-  const fetchData = async () => {
-    setLoading(true);
-    setError(null);
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
 
-    try {
-      const res = await fetch("/api/alerts");
-      if (!res.ok) throw new Error("Failed to fetch alerts");
+      try {
+        const res = await fetch("/api/alerts");
+        if (!res.ok) throw new Error("Failed to fetch alerts");
 
-      const json = await res.json();
-      setAlerts(json);
-    } catch (err: any) {
-      setError(err.message || "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  };
+        const json = await res.json();
+        setAlerts(json);
+      } catch (err: any) {
+        setError(err.message || "Something went wrong");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  fetchData();
-}, []);
-if (loading) return <div>Loading...</div>;
-if (error) return <div>Error: {error}</div>;
-if (!alerts) return <div>No alerts found.</div>;
+    fetchData();
+  }, []);
+  
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+  if (!alerts) return <div>No alerts found.</div>;
 
   const filteredAlerts = alerts.filter((alert) => {
-    // Apply search filter
     const matchesSearch =
       searchQuery === "" ||
       alert.threatName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      alert.agentName.toLowerCase().includes(searchQuery.toLowerCase())
+      alert.agentName.toLowerCase().includes(searchQuery.toLowerCase());
 
-    // Apply status filter
-    const matchesStatus = statusFilter.length === 0 || statusFilter.includes(alert.status)
+    const matchesStatus =
+      statusFilter.length === 0 || statusFilter.includes(alert.status);
 
-    return matchesSearch && matchesStatus
-  })
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <Card className="col-span-4">
       <CardHeader>
         <CardTitle>Recent Alerts</CardTitle>
-        <CardDescription>View and manage security alerts from SentinelOne.</CardDescription>
+        <CardDescription>
+          View and manage security alerts from SentinelOne.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-between space-y-2 mb-4">
@@ -155,9 +124,9 @@ if (!alerts) return <div>No alerts found.</div>;
                 checked={statusFilter.includes("new")}
                 onCheckedChange={(checked) => {
                   if (checked) {
-                    setStatusFilter([...statusFilter, "new"])
+                    setStatusFilter([...statusFilter, "new"]);
                   } else {
-                    setStatusFilter(statusFilter.filter((s) => s !== "new"))
+                    setStatusFilter(statusFilter.filter((s) => s !== "new"));
                   }
                 }}
               >
@@ -167,9 +136,11 @@ if (!alerts) return <div>No alerts found.</div>;
                 checked={statusFilter.includes("processed")}
                 onCheckedChange={(checked) => {
                   if (checked) {
-                    setStatusFilter([...statusFilter, "processed"])
+                    setStatusFilter([...statusFilter, "processed"]);
                   } else {
-                    setStatusFilter(statusFilter.filter((s) => s !== "processed"))
+                    setStatusFilter(
+                      statusFilter.filter((s) => s !== "processed")
+                    );
                   }
                 }}
               >
@@ -179,9 +150,11 @@ if (!alerts) return <div>No alerts found.</div>;
                 checked={statusFilter.includes("updated")}
                 onCheckedChange={(checked) => {
                   if (checked) {
-                    setStatusFilter([...statusFilter, "updated"])
+                    setStatusFilter([...statusFilter, "updated"]);
                   } else {
-                    setStatusFilter(statusFilter.filter((s) => s !== "updated"))
+                    setStatusFilter(
+                      statusFilter.filter((s) => s !== "updated")
+                    );
                   }
                 }}
               >
@@ -212,25 +185,37 @@ if (!alerts) return <div>No alerts found.</div>;
                 filteredAlerts.map((alert) => (
                   <TableRow key={alert.id}>
                     <TableCell className="font-medium">
-                      <Link href={`/alerts/${alert.id}`} className="hover:underline">
+                      <Link
+                        href={`/alerts/${alert.id}`}
+                        className="hover:underline"
+                      >
                         {alert.threatName}
                       </Link>
                     </TableCell>
                     <TableCell>
                       {alert.status === "new" && (
-                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                        <Badge
+                          variant="outline"
+                          className="bg-blue-50 text-blue-700 border-blue-200"
+                        >
                           <Clock className="mr-1 h-3 w-3" />
                           New
                         </Badge>
                       )}
                       {alert.status === "processed" && (
-                        <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                        <Badge
+                          variant="outline"
+                          className="bg-amber-50 text-amber-700 border-amber-200"
+                        >
                           <CheckCircle className="mr-1 h-3 w-3" />
                           Processed
                         </Badge>
                       )}
                       {alert.status === "updated" && (
-                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                        <Badge
+                          variant="outline"
+                          className="bg-green-50 text-green-700 border-green-200"
+                        >
                           <Shield className="mr-1 h-3 w-3" />
                           Updated
                         </Badge>
@@ -239,35 +224,54 @@ if (!alerts) return <div>No alerts found.</div>;
                     <TableCell>{alert.agentName}</TableCell>
                     <TableCell>
                       {alert.confidence === "high" && (
-                        <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                        <Badge
+                          variant="outline"
+                          className="bg-red-50 text-red-700 border-red-200"
+                        >
                           High
                         </Badge>
                       )}
                       {alert.confidence === "medium" && (
-                        <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                        <Badge
+                          variant="outline"
+                          className="bg-amber-50 text-amber-700 border-amber-200"
+                        >
                           Medium
                         </Badge>
                       )}
                       {alert.confidence === "low" && (
-                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                        <Badge
+                          variant="outline"
+                          className="bg-green-50 text-green-700 border-green-200"
+                        >
                           Low
                         </Badge>
                       )}
                     </TableCell>
                     <TableCell>
                       {alert.verdict === "true_positive" && (
-                        <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                        <Badge
+                          variant="outline"
+                          className="bg-red-50 text-red-700 border-red-200"
+                        >
                           <AlertCircle className="mr-1 h-3 w-3" />
                           True Positive
                         </Badge>
                       )}
                       {alert.verdict === "false_positive" && (
-                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                        <Badge
+                          variant="outline"
+                          className="bg-green-50 text-green-700 border-green-200"
+                        >
                           <CheckCircle className="mr-1 h-3 w-3" />
                           False Positive
                         </Badge>
                       )}
-                      {!alert.verdict && <span className="text-muted-foreground text-sm">Pending</span>}
+                      {!alert.verdict && (
+                        <span className="text-muted-foreground text-sm">
+                          Pending
+                        </span>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))
@@ -277,5 +281,5 @@ if (!alerts) return <div>No alerts found.</div>;
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

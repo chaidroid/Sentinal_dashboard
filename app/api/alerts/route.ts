@@ -1,91 +1,36 @@
-import { NextResponse } from "next/server"
-import path from "path"
-import fs from "fs"
-
-// Mock data for alerts
-// const alerts = [
-//   {
-//     id: "1234567890",
-//     threatName: "Suspicious PowerShell Command",
-//     confidence: "high",
-//     status: "processed",
-//     agentName: "DESKTOP-ABC123",
-//     filePath: "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
-//     timestamp: "2023-05-01T12:34:56Z",
-//     verdict: "true_positive",
-//   },
-//   {
-//     id: "2345678901",
-//     threatName: "Potential Malware Download",
-//     confidence: "medium",
-//     status: "processed",
-//     agentName: "LAPTOP-XYZ456",
-//     filePath: "C:\\Users\\user\\Downloads\\setup.exe",
-//     timestamp: "2023-05-02T10:11:12Z",
-//     verdict: "false_positive",
-//   },
-//   {
-//     id: "3456789012",
-//     threatName: "Suspicious Registry Modification",
-//     confidence: "high",
-//     status: "new",
-//     agentName: "SERVER-789",
-//     filePath: "C:\\Windows\\System32\\reg.exe",
-//     timestamp: "2023-05-03T09:08:07Z",
-//     verdict: null,
-//   },
-//   {
-//     id: "4567890123",
-//     threatName: "Potential Data Exfiltration",
-//     confidence: "high",
-//     status: "processed",
-//     agentName: "DESKTOP-DEF456",
-//     filePath: "C:\\Program Files\\FileZilla FTP Client\\filezilla.exe",
-//     timestamp: "2023-05-04T15:16:17Z",
-//     verdict: "true_positive",
-//   },
-//   {
-//     id: "5678901234",
-//     threatName: "Suspicious Script Execution",
-//     confidence: "medium",
-//     status: "new",
-//     agentName: "LAPTOP-GHI789",
-//     filePath: "C:\\Users\\admin\\Documents\\script.vbs",
-//     timestamp: "2023-05-05T14:13:12Z",
-//     verdict: null,
-//   },
-// ]
+import { NextResponse } from "next/server";
+import path from "path";
+import fs from "fs";
 
 export async function GET() {
   const alertsDir = path.join(process.cwd(), "../generated_alerts");
 
   try {
-    // Read all files inside the alerts folder
     const fileNames = fs.readdirSync(alertsDir);
-    
-    // Read each file and parse the contents
+
     const rawData = fileNames.map((file) => {
       const filePath = path.join(alertsDir, file);
       const fileContents = fs.readFileSync(filePath, "utf-8");
       return JSON.parse(fileContents);
     });
 
-    // Map the raw data to the desired structure
     const alerts = rawData.map((alert: any) => ({
-  id: alert?.id ?? "",
-  threatName: alert?.threatInfo?.threatName ?? "",
-  confidence: alert?.threatInfo?.confidenceLevel ?? "",
-  agentName: alert?.agentRealtimeInfo?.agentComputerName ?? "",
-  filePath: alert?.threatInfo?.filePath ?? "",
-  status: alert?.threatInfo?.incidentStatus ?? "",
-  timestamp: alert?.threatInfo?.createdAt ?? "",
-  verdict: alert?.threatInfo?.analystVerdict ?? "",
-}));
+      id: alert?.id ?? "",
+      threatName: alert?.threatInfo?.threatName ?? "",
+      confidence: alert?.threatInfo?.confidenceLevel ?? "",
+      agentName: alert?.agentRealtimeInfo?.agentComputerName ?? "",
+      filePath: alert?.threatInfo?.filePath ?? "",
+      status: alert?.threatInfo?.incidentStatus ?? "",
+      timestamp: alert?.threatInfo?.createdAt ?? "",
+      verdict: alert?.threatInfo?.analystVerdict ?? "",
+    }));
 
-    // Return the alerts as JSON response
     return NextResponse.json(alerts);
   } catch (error) {
     console.error("Error reading alert files:", error);
-    return NextResponse.json({ error: "Failed to load alerts" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to load alerts" },
+      { status: 500 }
+    );
   }
 }
